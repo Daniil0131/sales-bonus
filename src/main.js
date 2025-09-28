@@ -96,30 +96,31 @@ function analyzeSalesData(data, options) {
         const seller = sellerIndex[record.seller_id];
         
         if(!seller) return;
-        
+        const seenSkus = new Set();
         record.items.forEach(item => {
-            const skuKey = String(item.sku);
-            const product = productIndex[skuKey];
-            if (!product) return;
+        const skuKey = String(item.sku);
+        const product = productIndex[skuKey];
+        if (!product) return;
 
-            if (!seller.products_sold[skuKey]) {
-              seller.products_sold[skuKey] = 0;
-            }
-            // считаем по строкам (line items)
-            seller.products_sold[skuKey] += 1;
+      
+        seenSkus.add(skuKey);
 
-            const revenueItem = (typeof calculateRevenue === 'function')
-            ? calculateRevenue(item, product)
-            : calculateSimpleRevenue(item, product);
-            seller.revenue += revenueItem;
+     
+        const revenueItem = (typeof calculateRevenue === 'function')
+          ? calculateRevenue(item, product)
+          : calculateSimpleRevenue(item, product);
+        seller.revenue += revenueItem;
 
-            const unitCost = (product.cost_price ?? product.purchase_price ?? 0);
-            const cost = unitCost * (item.quantity ?? 0);
-            seller.profit += (revenueItem - cost);
-
-            seller.sales_count += 1;
-        });
-        
+        const unitCost = (product.cost_price ?? product.purchase_price ?? 0);
+        const cost = unitCost * (item.quantity ?? 0);
+        seller.profit += (revenueItem - cost);
+    });
+        seenSkus.forEach(skuKey => {
+        if (!seller.products_sold[skuKey]) {
+            seller.products_sold[skuKey] = 0;
+        }
+        seller.products_sold[skuKey] += 1; 
+    });
     })
     // @TODO: Сортировка продавцов по прибыли
     sellerStats.sort((a, b) => b.profit - a.profit)
