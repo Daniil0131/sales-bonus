@@ -93,35 +93,43 @@ function analyzeSalesData(data, options) {
     data.products.forEach(p => { productIndex[String(p.sku)] = p; });   
     // @TODO: Расчет выручки и прибыли для каждого продавца
     data.purchase_records.forEach(record => {
-        const seller = sellerIndex[record.seller_id];
-        
-        if(!seller) return;
-        const seenSkus = new Set();
-        record.items.forEach(item => {
-        const skuKey = String(item.sku);
-        const product = productIndex[skuKey];
-        if (!product) return;
+  const seller = sellerIndex[record.seller_id];
+  if (!seller) return;
 
-            
-        seenSkus.add(skuKey);
+  // 1) Считаем продажи ПО ЧЕКАМ: +1 на каждый чек
+  seller.sales_count += 1;
 
-     
-        const revenueItem = (typeof calculateRevenue === 'function')
-          ? calculateRevenue(item, product)
-          : calculateSimpleRevenue(item, product);
-        seller.revenue += revenueItem;
+  // 2) Собираем уникальные SKU в рамках одного чека
+  const seenSkus = new Set();
 
-        const unitCost = (product.cost_price ?? product.purchase_price ?? 0);
-        const cost = unitCost * (item.quantity ?? 0);
-        seller.profit += (revenueItem - cost);
-    });
-        seenSkus.forEach(skuKey => {
-        if (!seller.products_sold[skuKey]) {
-            seller.products_sold[skuKey] = 0;
-        }
-        seller.products_sold[skuKey] += 1; 
-    });
-    })
+  record.items.forEach(item => {
+    const skuKey = String(item.sku);
+    const product = productIndex[skuKey];
+    if (!product) return;
+
+    seenSkus.add(skuKey); // учитывать SKU не более 1 раза за чек
+
+    // Выручка и прибыль считаются по строкам (обычно так и нужно)
+    const revenueItem = (typeof calculateRevenue === 'function')
+      ? calculateRevenue(item, product)
+      : calculateSimpleRevenue(item, product);
+    seller.revenue += revenueItem;
+
+    const unitCost = (product.cost_price ?? product.purchase_price ?? 0);
+    const cost = unitCost * (item.quantity ?? 0);
+    seller.profit += (revenueItem - cost);
+  });
+
+  // 3) После обработки чека — обновляем топы: +1 за чек, где встретился SKU
+  seenSkus.forEach(skuKey => {
+    if (!seller.products_sold[skuKey]) {
+      seller.products_sold[skuKey] = 0;
+    }
+    seller.products_sold[skuKey] += 1;
+  });
+});
+      
+
     // @TODO: Сортировка продавцов по прибыли
     sellerStats.sort((a, b) => b.profit - a.profit)
     // @TODO: Назначение премий на основе ранжирования
