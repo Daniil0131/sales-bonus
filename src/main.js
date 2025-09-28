@@ -56,12 +56,10 @@ function analyzeSalesData(data, options) {
     if(data.sellers.length === 0) {
         throw new Error('Неккоректные входные данные')
     }
-    if(data.product.length === 0) {
+    if(data.products.length === 0) {
         throw new Error('Неккоректные входные данные')
     }
-    if(data.purchase_records.length === 0) {
-        throw new Error('Пустой')
-    }
+
     // @TODO: Проверка наличия опций
     if(
         !options || 
@@ -97,7 +95,7 @@ function analyzeSalesData(data, options) {
         const seller = sellerIndex[record.seller_id];
         
         if(!seller) return;
-        seller.sales_count += 1;
+        
         record.items.forEach(item => {
             const product = productIndex[item.sku];
 
