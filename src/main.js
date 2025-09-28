@@ -102,7 +102,7 @@ function analyzeSalesData(data, options) {
         const product = productIndex[skuKey];
         if (!product) return;
 
-      
+            
         seenSkus.add(skuKey);
 
      
