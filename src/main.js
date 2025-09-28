@@ -43,17 +43,22 @@ function calculateBonusByProfit(index, total, seller) {
 function analyzeSalesData(data, options) {
 
     // @TODO: Проверка входных данных
-    if(!data
-        
-        
+    if(!data ||
+        !Array.isArray(data.sellers) ||
+        !Array.isArray(data.products) ||
+        !Array.isArray(data.purchase_records)
     ) {
         throw new Error('Неккоректные входные данные')
     }
     
     // @TODO: Проверка наличия опций
-    //if (!someVar || !otherVar) {
-       // throw new Error('Чего-то не хватает');
-    //}
+    if(!options || 
+        typeof options !== 'object' ||
+        typeof options.calculateRevenue !== 'function' ||
+        typeof options.calculateBonus !== 'function'
+    ) {
+        throw new Error('Некоректные опции')
+    }
     const { calculateRevenue, calculateBonus } = options
     // @TODO: Подготовка промежуточных данных для сбора статистики
     const sellerStats = data.sellers.map(seller => ({
