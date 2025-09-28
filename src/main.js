@@ -43,21 +43,22 @@ function calculateBonusByProfit(index, total, seller) {
 function analyzeSalesData(data, options) {
 
     // @TODO: Проверка входных данных
-    if(!data ||
-        !Array.isArray(data.sellers) ||
-        !Array.isArray(data.products) ||
-        !Array.isArray(data.purchase_records)
+     if (
+      !data ||
+      !Array.isArray(data.sellers) ||
+      !Array.isArray(data.products) ||
+      !Array.isArray(data.purchase_records)
     ) {
-        throw new Error('Неккоректные входные данные')
+      throw new Error('Некорректные входные данные');
     }
-    if(data.purchase_records.length === 0) {
-        throw new Error('Пустой список')
+    if (data.sellers.length === 0) {
+      throw new Error('Некорректные входные данные');
     }
-    if(data.sellers.length === 0) {
-        throw new Error('Неккоректные входные данные')
+    if (data.products.length === 0) {
+      throw new Error('Некорректные входные данные');
     }
-    if(data.products.length === 0) {
-        throw new Error('Неккоректные входные данные')
+    if (data.purchase_records.length === 0) {
+      throw new Error('Пустой список операций');
     }
 
     // @TODO: Проверка наличия опций
@@ -67,7 +68,7 @@ function analyzeSalesData(data, options) {
         typeof options.calculateRevenue !== 'function' ||
         typeof options.calculateBonus !== 'function'
     ) {
-        throw new Error('Некоректные опции')
+        throw new Error('Некорректные опции')
     }
     const { calculateRevenue, calculateBonus } = options
     // @TODO: Подготовка промежуточных данных для сбора статистики
@@ -97,12 +98,15 @@ function analyzeSalesData(data, options) {
         if(!seller) return;
         
         record.items.forEach(item => {
-            const product = productIndex[item.sku];
+            const skuKey = String(item.sku);
+            const product = productIndex[skuKey];
+            if (!product) return;
 
-            if(!seller.products_sold[item.sku]) {
-                seller.products_sold[item.sku] = 0;
+            if (!seller.products_sold[skuKey]) {
+              seller.products_sold[skuKey] = 0;
             }
-            seller.products_sold[item.sku] += 1;
+            // считаем по строкам (line items)
+            seller.products_sold[skuKey] += 1;
 
             const revenueItem = (typeof calculateRevenue === 'function')
             ? calculateRevenue(item, product)
