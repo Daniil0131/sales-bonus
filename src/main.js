@@ -53,6 +53,15 @@ function analyzeSalesData(data, options) {
     if(data.purchase_records.length === 0) {
         throw new Error('Пустой список')
     }
+    if(data.sellers.length === 0) {
+        throw new Error('Неккоректные входные данные')
+    }
+    if(data.product.length === 0) {
+        throw new Error('Неккоректные входные данные')
+    }
+    if(data.purchase_records.length === 0) {
+        throw new Error('Пустой')
+    }
     // @TODO: Проверка наличия опций
     if(
         !options || 
