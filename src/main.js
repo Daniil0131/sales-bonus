@@ -80,6 +80,8 @@ function analyzeSalesData(data, options) {
         position: seller.position,
         revenue: 0,
         profit: 0,
+        _revenue_cents: 0,
+        _cost_cents: 0,
         sales_count: 0,
         products_sold: {},
         bonus: 0,
@@ -113,11 +115,11 @@ function analyzeSalesData(data, options) {
     const revenueItem = (typeof calculateRevenue === 'function')
       ? calculateRevenue(item, product)
       : calculateSimpleRevenue(item, product);
-    seller.revenue += revenueItem;
+    seller._revenue_cents += Math.round(revenueItem * 100);
 
     const unitCost = (product.cost_price ?? product.purchase_price ?? 0);
     const cost = unitCost * (item.quantity ?? 0);
-    seller.profit += (revenueItem - cost);
+    seller._cost_cents += Math.round(cost * 100);
   });
 
   // 3) После обработки чека — обновляем топы: +1 за чек, где встретился SKU
@@ -131,6 +133,11 @@ function analyzeSalesData(data, options) {
       
 
     // @TODO: Сортировка продавцов по прибыли
+    sellerStats.sort((a, b) => b.profit - a.profit)
+    sellerStats.forEach(s => {
+    s.revenue = s._revenue_cents / 100;
+    s.profit  = (s._revenue_cents - s._cost_cents) / 100;
+});
     sellerStats.sort((a, b) => b.profit - a.profit)
     // @TODO: Назначение премий на основе ранжирования
     const total = sellerStats.length;
