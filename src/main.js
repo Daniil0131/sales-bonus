@@ -41,9 +41,10 @@ function calculateBonusByProfit(index, total, seller) {
 function analyzeSalesData(data, options) {
     // @TODO: Проверка входных данных
     if (!data
-        || !Array.isArray(data.sellers) || data.sellers.length === 0
-        || !Array.isArray(data.products) || data.products.length === 0
-        || !Array.isArray(data.purchase_records) || data.purchase_records.length === 0
+        || !Array.isArray(data.sellers)
+        || data.sellers.length === 0
+        || data.products.length === 0
+        || data.purchase_records === 0
     ) {
         throw new Error("Некорректные входные данные");
     };
@@ -75,9 +76,8 @@ function analyzeSalesData(data, options) {
         record.items.forEach(item => {
             const product = productIndex[item.sku];
             const cost = product.purchase_price * item.quantity;
-            const revenueItem = calculateRevenue(item, product);
-            seller.revenue += revenueItem;
-            const profit = revenueItem - cost;
+            const revenue = calculateSimpleRevenue(item, product);
+            const profit = revenue - cost;
             seller.profit += profit;
             if(!seller.products_sold[item.sku]) seller.products_sold[item.sku] = 0;
             seller.products_sold[item.sku] += item.quantity;
